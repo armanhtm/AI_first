@@ -1,9 +1,6 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -40,8 +37,30 @@ public class Main {
 
         for (String b : targetsB){
             graph.IDDFS(targetsP,maxDepth,true,b);
-
         }
+
+        graph.findRobotPath();
+
+        //this arraylist hold first location of each path
+        ArrayList<String> firstLocations = new ArrayList<>();
+        for (ArrayList<String> array: graph.pathsRobot)
+            firstLocations.add(array.get(0));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

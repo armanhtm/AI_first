@@ -13,7 +13,11 @@ public class Graph {
 
     public String srcF;
 
-    public ArrayList<ArrayList<String>> 
+    public ArrayList<ArrayList<String>> pathsButter;
+
+    private int index;
+
+    public ArrayList<ArrayList<String>> pathsRobot;
 
     //constructor
     public Graph(String[][] matrix,int matrixRow , int matrixCol){
@@ -21,6 +25,9 @@ public class Graph {
         find = false;
         this.matrixRow = matrixRow;
         this.matrixCol = matrixCol;
+        pathsButter = new ArrayList<>();
+        index = 0 ;
+        pathsRobot = new ArrayList<ArrayList<String>>();
 
     }
 
@@ -90,6 +97,7 @@ public class Graph {
 
 
 
+    ArrayList<String> pathTemp = new ArrayList<>();
     /**
      *  A function to perform a Depth-Limited search
      * 	from given source 'src'
@@ -98,6 +106,7 @@ public class Graph {
      * @param maxDepth maximum depth that  we want to search
      * @return true if finding the target and else false
      */
+
     public boolean DLS(String src,ArrayList<String> targets , int maxDepth , boolean special){
         //if we find target return true
         for (String target : targets)
@@ -113,7 +122,7 @@ public class Graph {
         for (String nowLocation : neighbors(src,special)){
             if(DLS(nowLocation , targets,maxDepth-1,special))
                 if(find){
-                    System.out.println(nowLocation);
+                    pathTemp.add(nowLocation);
                     return true;
                 }
         }
@@ -139,6 +148,9 @@ public class Graph {
                 int srcFRow = Integer.parseInt(srcF.split(",")[0]);
                 int srcFCol = Integer.parseInt(srcF.split(",")[1]);
                 matrix[srcFRow][srcFCol] = matrix[srcFRow][srcFCol].replace('p','b');
+                pathTemp.add(src);
+                pathsButter.add(pathTemp);
+                pathTemp = new ArrayList<>();
                 return true;}
         }
         matrix[srcRow][srcCol] = matrix[srcRow][srcCol].replace('B','b');
@@ -146,30 +158,71 @@ public class Graph {
     }
 
 
+    public void findRobotPath(){
+        int pathsNumber= pathsButter.size();
+        for(int i=0 ; i<pathsNumber ; i++) {
+            ArrayList<String> path = new ArrayList<>();
+            for (int j = pathsButter.get(i).size()-1 ; j > 0; j--) {
+                String first = pathsButter.get(i).get(j);
+                String second = pathsButter.get(i).get(j - 1);
+
+                if(!path.contains(findDirection(first,second)))
+                    if(j==pathsButter.get(i).size())
+                        path.add(findDirection(first, second));
+                    else{
+                        
+                    }
+
+                path.add(first);
+
+            }
+            pathsRobot.add(path);
+        }
+    }
 
 
 
+    private String findDirection(String first, String second) {
+
+        String nexLocation = new String();
+
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
+
+        int secRow = Integer.parseInt(second.split(",")[0]);
+        int secCol = Integer.parseInt(second.split(",")[1]);
+
+        if(firstRow==secRow && secCol>firstCol){
+            nexLocation = firstRow+","+(firstCol-1);
+            return nexLocation;}
+
+        if(firstRow==secRow && secCol<firstCol){
+            nexLocation = firstRow+","+(firstCol+1);
+            return nexLocation;}
+
+        if(firstCol==secCol && firstRow>secRow){
+            nexLocation = (firstRow+1)+","+firstCol;
+            return nexLocation; }
+
+        else
+            return (firstRow-1)+","+firstCol;
 
 
 
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * this method return inverse of arrayList
+     * @param input
+     * @return
+     */
+    public ArrayList<String> inverse (ArrayList<String> input){
+        ArrayList<String> inverse = new ArrayList<>();
+        for (String s : input)
+            inverse.add(s);
+        return inverse;
+    }
 
 
 }
