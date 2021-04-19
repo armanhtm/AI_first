@@ -202,8 +202,8 @@ public class BidirectionalBFS {
             path2.add(PositionToString(j,Row,Col));
             j = parent2[j];
         }
-        for (String string : path1) {
-            path.add(string);
+        for (int i = path1.size() - 1 ; i >= 0; i--) {
+            path.add(path1.get(i));
         }
         for (String string : path2) {
             path.add(string);
