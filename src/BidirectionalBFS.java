@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 
+class Example {
+    public static String Src;
+    public static String Dest;
+}
 public class BidirectionalBFS {
 
     public static void main(String[] args) {
@@ -28,13 +32,15 @@ public class BidirectionalBFS {
             }
         int MaxDepth = Math.min(1000, Math.max(Row, Col));
         ArrayList<String> temp = new ArrayList<>();
-        temp = BIBFS("1,2", "4,3", matrix, Row, Col, false);
+        Example.Src = "1,1";
+        Example.Dest = "4,4";
+        temp = BIBFS(Example.Src, Example.Dest, matrix, Row, Col, true);
         for (String string : temp) {
             System.out.println(string);
         }
     }
 
-    public static ArrayList<String> FindNeighbors(String location, String[][] matrix, int Row, int Col, boolean special) {
+    public static ArrayList<String> FindNeighborsForward(String location, String[][] matrix, int Row, int Col, boolean special) {
         int row = Integer.parseInt(location.split(",")[0]);
         int col = Integer.parseInt(location.split(",")[1]);
         ArrayList<String> neighbors = new ArrayList<>();
@@ -75,6 +81,53 @@ public class BidirectionalBFS {
             if (!matrix[row][col + 1].contains("x") && !matrix[row][col + 1].contains("b"))
                 if (special) {
                     if (col - 1 >= 0 && (!matrix[row][col - 1].contains("x") && !matrix[row][col - 1].contains("b")))
+                        neighbors.add(row + "," + (col + 1));
+                } else
+                    neighbors.add(row + "," + (col + 1));
+
+        return neighbors;
+    }
+    public static ArrayList<String> FindNeighborsBackWard(String location, String[][] matrix, int Row, int Col, boolean special) {
+        int row = Integer.parseInt(location.split(",")[0]);
+        int col = Integer.parseInt(location.split(",")[1]);
+        ArrayList<String> neighbors = new ArrayList<>();
+
+
+        //top of src
+        if (row - 1 >= 0)
+            if (!matrix[row - 1][col].contains("x") && !matrix[row - 1][col].contains("b"))
+                if (special) {
+                    if (row - 2 >= 0 && (!matrix[row - 2][col].contains("x") && !matrix[row - 2][col].contains("b")))
+                        neighbors.add((row - 1) + "," + col);
+                } else
+                    neighbors.add((row - 1) + "," + col);
+
+
+        //down of src
+        if (row + 1 < Row)
+            if (!matrix[row + 1][col].contains("x") && !matrix[row + 1][col].contains("b"))
+                if (special) {
+                    if (row + 2 < Row && (!matrix[row + 2][col].contains("x") && !matrix[row + 2][col].contains("b")))
+                        neighbors.add((row + 1) + "," + col);
+                } else
+                    neighbors.add((row + 1) + "," + col);
+
+
+        //left of src
+        if (col - 1 >= 0)
+            if (!matrix[row][col - 1].contains("x") && !matrix[row][col - 1].contains("b"))
+                if (special) {
+                    if (col - 2 >= 0 && (!matrix[row][col - 2].contains("x") && !matrix[row][col - 2].contains("b")))
+                        neighbors.add(row + "," + (col - 1));
+                } else
+                    neighbors.add(row + "," + (col - 1));
+
+
+        //right of src
+        if (col + 1 < Col)
+            if (!matrix[row][col + 1].contains("x") && !matrix[row][col + 1].contains("b"))
+                if (special) {
+                    if (col + 2 < Col && (!matrix[row][col + 2].contains("x") && !matrix[row][col + 2].contains("b")))
                         neighbors.add(row + "," + (col + 1));
                 } else
                     neighbors.add(row + "," + (col + 1));
@@ -154,8 +207,7 @@ public class BidirectionalBFS {
 
     public static ArrayList<String> BIBFS(String location, String target, String[][] matrix, int Row, int Col, boolean special) {
         ArrayList<String> path = new ArrayList<>();
-        Graph G = new Graph(Row, Col, special);
-        G.add_edge(matrix);
+        Graph G = new Graph(Row, Col, special,matrix);
         int src = PositionToInt(location,Row,Col);
         int dest = PositionToInt(target,Row,Col);
         boolean[] Visited1 = new boolean[Row * Col];
@@ -176,8 +228,8 @@ public class BidirectionalBFS {
         Visited2[dest] = true;
         int intersection = -1;
         while (queue1.size() > 0 && queue2.size() > 0 && intersection == -1) {
-            G.BFS(queue1, Visited1, parent1);
-            G.BFS(queue2, Visited2, parent2);
+            G.BFS(queue1, Visited1, parent1,false);
+            G.BFS(queue2, Visited2, parent2,true);
 
             for (int i = 0; i < Row * Col; i++) {
                 if (Visited1[i] && Visited2[i]) {  //checking intersection
@@ -219,32 +271,39 @@ public class BidirectionalBFS {
     }
 
     static class Graph {
+        String[][] matrix;
         int row;
         int col;
         boolean special;
         ArrayList<Integer>[] Adj; // adjacency list
 
-        Graph(int row, int col, boolean special) {
+        Graph(int row, int col, boolean special,String[][] Matrix) {
             this.row = row;
             this.col = col;
             this.special = special;
+            this.matrix = Matrix;
             Adj = new ArrayList[row * col];
             for (int i = 0; i < row * col; i++) {
                 Adj[i] = new ArrayList<>();
             }
         }
 
-        void add_edge(String[][] matrix) {
-            for (int i = 0; i < row * col; i++) {
-                ArrayList<String> temp = FindNeighbors(PositionToString(i,row,col), matrix, row, col, special);
-                for (String string : temp) {
-                    Adj[i].add(PositionToInt(string,row,col));
+        void add_edge(int src,boolean back) {
+                ArrayList<String> temp;
+                if(back){
+                    temp = FindNeighborsBackWard(PositionToString(src,row,col), matrix, row, col, special);
                 }
-            }
+                else{
+                    temp = FindNeighborsForward(PositionToString(src,row,col), matrix, row, col, special);
+                }
+                for (String string : temp) {
+                    Adj[src].add(PositionToInt(string,row,col));
+                }
         }
 
-        void BFS(ArrayList<Integer> queue, boolean[] visited, int[] parent) {
+        void BFS(ArrayList<Integer> queue, boolean[] visited, int[] parent,boolean back) {
             int current = queue.remove(0);
+            add_edge(current,back);
             for (int i = 0; i < Adj[current].size(); i++) {
                 int x = Adj[current].get(i);
                 if (!visited[x]) {
