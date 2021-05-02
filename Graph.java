@@ -1,6 +1,9 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 public class Graph {
     //find the target boolean value
@@ -45,7 +48,7 @@ public class Graph {
 
         //top of src
         if(row-1 >= 0 )
-            if(!matrix[row-1][col].contains("x") && !matrix[row-1][col].contains("b") )
+            if(!matrix[row-1][col].contains("x") && !matrix[row-1][col].contains("b"))
                 if(special){
                     if(row+1<matrixRow &&
                             (!matrix[row+1][col].contains("x") && !matrix[row+1][col].contains("b")))
@@ -57,7 +60,7 @@ public class Graph {
 
         //down of src
         if(row+1 < matrixRow )
-            if( !matrix[row+1][col].contains("x") && !matrix[row+1][col].contains("b") )
+            if( !matrix[row+1][col].contains("x") && !matrix[row+1][col].contains("b"))
                 if(special){
                     if(row-1>=0 &&
                             (!matrix[row-1][col].contains("x") && !matrix[row-1][col].contains("b")))
@@ -157,31 +160,82 @@ public class Graph {
         return false;
     }
 
+    /**
+     * this method find robot path
+     * @return
+     */
+    public boolean findRobotPath(){
+        //set plate
 
-    public void findRobotPath(){
-        int pathsNumber= pathsButter.size();
+        int pathsNumber = pathsButter.size();
         for(int i=0 ; i<pathsNumber ; i++) {
             ArrayList<String> path = new ArrayList<>();
             for (int j = pathsButter.get(i).size()-1 ; j > 0; j--) {
                 String first = pathsButter.get(i).get(j);
                 String second = pathsButter.get(i).get(j - 1);
 
-                if(!path.contains(findDirection(first,second)))
-                    if(j==pathsButter.get(i).size())
+                if(!pathsButter.get(i).contains(findDirection(first,second)))
+                    if(j==pathsButter.get(i).size()-1)
                         path.add(findDirection(first, second));
+
                     else{
-                        
+                        addButter(first);
+                        ArrayList<String> targets = new ArrayList<>();
+                        targets.add(findDirection(first,second));
+                        Graph graph = new Graph(matrix,matrixRow,matrixCol);
+                        ArrayList<String> aStarArray = new ArrayList<>();
+                        aStarArray.add(pathsButter.get(i).get(j+1));
+                        if(graph.IDDFS(targets,Math.min(matrixRow,matrixCol),false,pathsButter.get(i).get(j+1)))
+                        {
+                            for (String location : inverse(graph.pathsButter.get(0)))
+                                path.add(location);
+                            removeButter(first);}
+                        else {
+                            addButter(findDirection(first,second));
+                            removeButter(first);
+                            return false;}
                     }
 
                 path.add(first);
 
+
+
             }
             pathsRobot.add(path);
+
         }
+        return true;
+    }
+
+    /**
+     * this method remove butter from location
+     * @param first
+     */
+    private void removeButter(String first) {
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
+
+        matrix[firstRow][firstCol] = matrix[firstRow][firstCol].replace("b","");
+    }
+
+    /**
+     * this method get location and add a butter to it
+     * @param first
+     */
+    private void addButter(String first) {
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
+
+        matrix[firstRow][firstCol] = matrix[firstRow][firstCol]+"b";
     }
 
 
-
+    /**
+     *
+     * @param first
+     * @param second
+     * @return
+     */
     private String findDirection(String first, String second) {
 
         String nexLocation = new String();
@@ -219,9 +273,55 @@ public class Graph {
      */
     public ArrayList<String> inverse (ArrayList<String> input){
         ArrayList<String> inverse = new ArrayList<>();
-        for (String s : input)
-            inverse.add(s);
+        for (int i=input.size()-1 ; i>=0 ; i--)
+            inverse.add(input.get(i));
         return inverse;
+    }
+
+
+
+
+    /**
+     * content of graph in location
+     * @param location
+     * @param matrix
+     * @return
+     */
+    private String content(String location, String[][] matrix) {
+        int row = Integer.parseInt(location.split(",")[0]);
+        int col = Integer.parseInt(location.split(",")[1]);
+        return matrix[row][col];
+
+    }
+
+
+
+    /**
+     * this method add butter to each plate location and remove butter from target location
+     * @param targetsP
+     * @param plate
+     */
+    private void setPlateLocation(ArrayList<String> targetsP, String plate) {
+        for (String p : targetsP)
+            if(p.equals(plate))
+                removeButter(plate);
+            else
+                addButter(p);
+    }
+
+    /**
+     * this method calculate  manhatan
+     * @param goal
+     */
+    public int calculateManhatan(String src,String goal){
+        int goalRow = Integer.parseInt(goal.split(",")[0]);
+        int goalCol = Integer.parseInt(goal.split(",")[1]);
+
+        int srcRow = Integer.parseInt(src.split(",")[0]);
+        int srcCol = Integer.parseInt(src.split(",")[1]);
+
+        return Math.abs(goalCol-srcCol)+Math.abs(goalRow-srcRow);
+
     }
 
 
