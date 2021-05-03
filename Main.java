@@ -9,6 +9,7 @@ public class Main {
 
 
 
+
         //scanner for get input
         Scanner scanner = new Scanner(System.in);
         int row = scanner.nextInt();
@@ -83,7 +84,39 @@ public class Main {
         for (String location : finalPath)
             System.out.print("  "+location);
 
+        System.out.println("\n");
+
+        terminalShow(finalPath,matrix,row,col);
+
+
     }
+
+    private static void terminalShow(ArrayList<String> finalPath, String[][] matrix,int row ,int col) {
+        for (String location : finalPath){
+            for(int i=0 ; i<row ; i++){
+                for (int j=0 ; j<col ; j++)
+                    if(i==Integer.parseInt(location.split(",")[0]) && j==Integer.parseInt(location.split(",")[1]))
+                        System.out.printf("\u001B[33m%5s\u001B[0m",matrix[i][j]);
+                    else
+                        System.out.printf("%5s",matrix[i][j]);
+                System.out.println("");}
+            System.out.println("\n\n\n");
+
+        }
+
+        for (int i=0 ; i<row ; i++) {
+            for (int j = 0; j < col; j++) {
+                String location = i + "," + j;
+                if(finalPath.contains(location))
+                    System.out.printf("\u001B[33m%5s\u001B[0m",matrix[i][j]);
+                else
+                    System.out.printf("%5s",matrix[i][j]);
+
+            }
+            System.out.println();
+        }
+    }
+
     /**
      * this method remove butter from location
      * @param first
