@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 class Example {
@@ -15,6 +16,7 @@ public class BidirectionalBFS {
 
         //table matrix
         String[][] matrix = new String[Row][Col];
+        String[][] tempMatrix = new String[Row][Col];
 
         String Robot = new String();
         ArrayList<String> Butters = new ArrayList<>();
@@ -23,6 +25,7 @@ public class BidirectionalBFS {
         for (int i = 0; i < Row; i++)
             for (int j = 0; j < Col; j++) {
                 matrix[i][j] = scanner.next();
+                tempMatrix[i][j] = matrix[i][j];
                 if (matrix[i][j].contains("r"))
                     Robot = i + "," + j;
                 if (matrix[i][j].contains("b"))
@@ -31,12 +34,11 @@ public class BidirectionalBFS {
                     Plates.add(i + "," + j);
             }
         int MaxDepth = Math.min(1000, Math.max(Row, Col));
-        ArrayList<String> temp = new ArrayList<>();
-        Example.Src = "1,1";
-        Example.Dest = "4,4";
-        temp = BIBFS(Example.Src, Example.Dest, matrix, Row, Col, true);
-        for (String string : temp) {
-            System.out.println(string);
+        ArrayList<ArrayList<String>> temp = FindButterToPlate(Butters,Plates,tempMatrix,Row,Col);
+        for(ArrayList<String> path : temp) {
+            terminalShow(path,matrix,Row,Col);
+            System.out.println();
+            System.out.println();
         }
     }
 
@@ -314,4 +316,132 @@ public class BidirectionalBFS {
             }
         }
     }
+    public static int calculateManhatan(String src,String goal){
+        int goalRow = Integer.parseInt(goal.split(",")[0]);
+        int goalCol = Integer.parseInt(goal.split(",")[1]);
+
+        int srcRow = Integer.parseInt(src.split(",")[0]);
+        int srcCol = Integer.parseInt(src.split(",")[1]);
+
+        return Math.abs(goalCol-srcCol)+Math.abs(goalRow-srcRow);
+
+    }
+    private static void terminalShow(ArrayList<String> finalPath, String[][] matrix,int row ,int col) {
+        for (String location : finalPath){
+            for(int i = 0 ; i < row ; i++){
+                for (int j = 0 ; j < col ; j++)
+                    if(i == Integer.parseInt(location.split(",")[0]) && j == Integer.parseInt(location.split(",")[1]))
+                        System.out.printf("\u001B[33m%5s\u001B[0m",matrix[i][j]);
+                    else
+                        System.out.printf("%5s",matrix[i][j]);
+                System.out.println("");}
+            System.out.println("\n\n\n");
+
+        }
+
+        for (int i = 0 ; i < row ; i++) {
+            for (int j = 0; j < col; j++) {
+                String location = i + "," + j;
+                if(finalPath.contains(location))
+                    System.out.printf("\u001B[33m%5s\u001B[0m",matrix[i][j]);
+                else
+                    System.out.printf("%5s",matrix[i][j]);
+
+            }
+            System.out.println();
+        }
+    }
+
+    public static String findDirection(String first, String second) {
+
+        String nexLocation ;
+
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
+
+        int secRow = Integer.parseInt(second.split(",")[0]);
+        int secCol = Integer.parseInt(second.split(",")[1]);
+
+        if(firstRow == secRow && secCol > firstCol){
+            nexLocation = firstRow + "," + (firstCol - 1);
+            return nexLocation;}
+
+        if(firstRow == secRow && secCol < firstCol){
+            nexLocation = firstRow + "," + (firstCol + 1);
+            return nexLocation;}
+
+        if(firstCol == secCol && firstRow > secRow){
+            nexLocation = (firstRow + 1) + "," + firstCol;
+            return nexLocation; }
+
+        else
+            return (firstRow - 1) + "," + firstCol;
+    }
+    public static ArrayList<ArrayList<String>> FindButterToPlate(ArrayList<String> butters, ArrayList<String> plates, String[][] matrix, int row, int col){
+        HashMap<String,ArrayList<ArrayList<String>>> paths = new HashMap<>();
+        ArrayList<ArrayList<String>> finalPaths = new ArrayList<>();
+
+        for(int i = 0; i < butters.size() ; i++){
+             paths.put(butters.get(i),new ArrayList<>());
+             finalPaths.add(new ArrayList<>());
+        }
+
+        for(int i = 0 ;i < butters.size(); i++){
+            for(int j = 0 ; j < plates.size(); j++) {
+                ArrayList<String> temp = BIBFS(butters.get(i), plates.get(j), matrix, row, col, true);
+                if(temp != null) {
+                    paths.get(butters.get(i)).add(temp);
+                }
+            }
+        }
+        boolean [] butterIndexes = new boolean[butters.size()];
+        boolean [] platesIndexes = new boolean[plates.size()];
+        for(int i = 0 ; i < butterIndexes.length; i++) {
+            butterIndexes[i] = false;
+            platesIndexes[i] = false;
+        }
+
+        for(int i = 0; i < butters.size() ; i ++){
+            int min = plates.size() + 1;
+            int minIndex = -1;
+            for(int j = 0 ; j < butters.size() ; j++){
+                if(paths.get(butters.get(j)).size() < min && paths.get(butters.get(j)).size() != 0 && !butterIndexes[j]){
+                    min = paths.get(butters.get(j)).size();
+                    minIndex = j;
+                }
+            }
+
+            int minPath = row * col + 1;
+            int minPathIndex = -1;
+            for(int k = 0 ; k < paths.get(butters.get(minIndex)).size() ; k++){
+                if(paths.get(butters.get(minIndex)).get(k).size() < minPath && !platesIndexes[checkPlate(plates,paths.get(butters.get(minIndex)).get(k))]){
+                    minPath = paths.get(butters.get(minIndex)).get(k).size();
+                    minPathIndex = k;
+                }
+            }
+            setPlate(butters,minIndex,plates,checkPlate(plates,paths.get(butters.get(minIndex)).get(minPathIndex)),butterIndexes,platesIndexes,matrix);
+            finalPaths.add(paths.get(butters.get(minIndex)).get(minPathIndex));
+        }
+        return finalPaths;
+    }
+    public static int checkPlate(ArrayList<String> plates,ArrayList<String> path) {
+        for (int i = 0; i < plates.size(); i++)
+            if (plates.get(i).equals(path.get(path.size() - 1)))
+                    return i;
+        return -1;
+    }
+    public static void setPlate(ArrayList<String> butters,int butterIndex,ArrayList<String> plates,int plateIndex,boolean[] buttersIndexes,boolean[] plateIndexes,String[][] matrix){
+        buttersIndexes[butterIndex] = true;
+        String butter = butters.get(butterIndex);
+        int butterRow = Integer.parseInt(butter.split(",")[0]);
+        int butterCol = Integer.parseInt(butter.split(",")[1]);
+        matrix[butterRow][butterCol] = matrix[butterRow][butterCol].replace("b","");
+
+        plateIndexes[plateIndex] = true;
+        String plate = plates.get(plateIndex);
+        int plateRow = Integer.parseInt(plate.split(",")[0]);
+        int plateCol = Integer.parseInt(plate.split(",")[1]);
+        matrix[plateRow][plateCol] = matrix[plateRow][plateCol] + "b";
+    }
+
 }
