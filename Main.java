@@ -84,6 +84,9 @@ public class Main {
         for (String location : finalPath)
             System.out.print("  "+location);
 
+        if(finalPath.size()==0)
+            System.out.println("can’t pass the butter");
+
         System.out.println("\n");
 
         terminalShow(finalPath,matrix,row,col);
