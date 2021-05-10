@@ -46,7 +46,7 @@ public class BidirectionalBFS {
         int row = Integer.parseInt(location.split(",")[0]);
         int col = Integer.parseInt(location.split(",")[1]);
         ArrayList<String> neighbors = new ArrayList<>();
-
+        System.out.println(location + "$$");
 
         //top of src
         if (row - 1 >= 0)
@@ -86,13 +86,15 @@ public class BidirectionalBFS {
                         neighbors.add(row + "," + (col + 1));
                 } else
                     neighbors.add(row + "," + (col + 1));
-
+        for(String s : neighbors)
+            System.out.println(s + "$");
         return neighbors;
     }
     public static ArrayList<String> FindNeighborsBackWard(String location, String[][] matrix, int Row, int Col, boolean special) {
         int row = Integer.parseInt(location.split(",")[0]);
         int col = Integer.parseInt(location.split(",")[1]);
         ArrayList<String> neighbors = new ArrayList<>();
+        System.out.println(location + "**");
 
 
         //top of src
@@ -134,6 +136,8 @@ public class BidirectionalBFS {
                 } else
                     neighbors.add(row + "," + (col + 1));
 
+        for(String s : neighbors)
+            System.out.println(s + "*");
         return neighbors;
     }
 
@@ -209,6 +213,8 @@ public class BidirectionalBFS {
 
     public static ArrayList<String> BIBFS(String location, String target, String[][] matrix, int Row, int Col, boolean special) {
         ArrayList<String> path = new ArrayList<>();
+        addButter(location,matrix);
+        System.out.println("^^^^" + matrix[1][2] + "^^^^");
         Graph G = new Graph(Row, Col, special,matrix);
         int src = PositionToInt(location,Row,Col);
         int dest = PositionToInt(target,Row,Col);
@@ -262,6 +268,7 @@ public class BidirectionalBFS {
         for (String string : path2) {
             path.add(string);
         }
+        removeButter(location,matrix);
         return path;
     }
 
@@ -443,5 +450,21 @@ public class BidirectionalBFS {
         int plateCol = Integer.parseInt(plate.split(",")[1]);
         matrix[plateRow][plateCol] = matrix[plateRow][plateCol] + "b";
     }
+    public static void removeButter(String first,String[][] matrix) {
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
 
+        matrix[firstRow][firstCol] = matrix[firstRow][firstCol].replace("B","b");
+    }
+
+    /**
+     * this method get location and add a butter to it
+     * @param first
+     */
+    public static void addButter(String first,String[][] matrix) {
+        int firstRow = Integer.parseInt(first.split(",")[0]);
+        int firstCol = Integer.parseInt(first.split(",")[1]);
+
+        matrix[firstRow][firstCol] = matrix[firstRow][firstCol].replace("b","B");
+    }
 }
