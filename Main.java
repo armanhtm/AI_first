@@ -87,6 +87,12 @@ public class Main {
         if(finalPath.size()==0)
             System.out.println("can’t pass the butter");
 
+        //standard output
+        for (int i=0 ; i<finalPath.size()-1 ; i++)
+            System.out.print(FindDirection(finalPath.get(i),finalPath.get(i+1))+" ");
+        System.out.println("\n");
+
+
         System.out.println("\n");
 
         terminalShow(finalPath,matrix,row,col);
@@ -141,6 +147,36 @@ public class Main {
         int firstCol = Integer.parseInt(first.split(",")[1]);
 
         matrix[firstRow][firstCol] = matrix[firstRow][firstCol]+"b";
+    }
+
+    public static String FindDirection(String first, String second) {
+
+        int FirstRow = Integer.parseInt(first.split(",")[0]);
+        int FirstCol = Integer.parseInt(first.split(",")[1]);
+
+        int SecondRow = Integer.parseInt(second.split(",")[0]);
+        int SecondCol = Integer.parseInt(second.split(",")[1]);
+
+        if (FirstRow == SecondRow && SecondCol > FirstCol) {
+
+            return "R";
+        }
+
+        if (FirstRow == SecondRow && SecondCol < FirstCol) {
+
+            return "L";
+        }
+
+        if (FirstCol == SecondCol && FirstRow > SecondRow) {
+
+            return "U";
+        }
+        if(FirstCol==SecondCol && FirstRow==SecondRow)
+            return "";
+
+        else
+            return "D";
+
     }
 
 
