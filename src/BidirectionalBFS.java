@@ -35,18 +35,20 @@ public class BidirectionalBFS {
             }
         int MaxDepth = Math.min(1000, Math.max(Row, Col));
         ArrayList<ArrayList<String>> temp = FindButterToPlate(Butters,Plates,tempMatrix,Row,Col);
-        for(ArrayList<String> path : temp) {
-            terminalShow(path,matrix,Row,Col);
-            System.out.println();
-            System.out.println();
+        ArrayList<ArrayList<String>> butterToPlate = new ArrayList<>();
+        for(int i = 0 ; i < temp.size(); i++) {
+            if(temp.get(i).size() != 0)
+                butterToPlate.add(makeWay(temp.get(i), matrix, Row, Col));
         }
+        ArrayList<ArrayList<String>> finalPath = FindRobotToButter(Robot,butterToPlate,matrix,Row,Col);
+        for(int i = 0 ; i < finalPath.size(); i++)
+            terminalShow(finalPath.get(i),matrix,Row,Col);
     }
 
     public static ArrayList<String> FindNeighborsForward(String location, String[][] matrix, int Row, int Col, boolean special) {
         int row = Integer.parseInt(location.split(",")[0]);
         int col = Integer.parseInt(location.split(",")[1]);
         ArrayList<String> neighbors = new ArrayList<>();
-        System.out.println(location + "$$");
 
         //top of src
         if (row - 1 >= 0)
@@ -86,15 +88,13 @@ public class BidirectionalBFS {
                         neighbors.add(row + "," + (col + 1));
                 } else
                     neighbors.add(row + "," + (col + 1));
-        for(String s : neighbors)
-            System.out.println(s + "$");
+
         return neighbors;
     }
     public static ArrayList<String> FindNeighborsBackWard(String location, String[][] matrix, int Row, int Col, boolean special) {
         int row = Integer.parseInt(location.split(",")[0]);
         int col = Integer.parseInt(location.split(",")[1]);
         ArrayList<String> neighbors = new ArrayList<>();
-        System.out.println(location + "**");
 
 
         //top of src
@@ -136,8 +136,6 @@ public class BidirectionalBFS {
                 } else
                     neighbors.add(row + "," + (col + 1));
 
-        for(String s : neighbors)
-            System.out.println(s + "*");
         return neighbors;
     }
 
@@ -212,9 +210,10 @@ public class BidirectionalBFS {
     }
 
     public static ArrayList<String> BIBFS(String location, String target, String[][] matrix, int Row, int Col, boolean special) {
+        if(location.equals(target))
+            return null;
         ArrayList<String> path = new ArrayList<>();
         addButter(location,matrix);
-        System.out.println("^^^^" + matrix[1][2] + "^^^^");
         Graph G = new Graph(Row, Col, special,matrix);
         int src = PositionToInt(location,Row,Col);
         int dest = PositionToInt(target,Row,Col);
@@ -440,15 +439,11 @@ public class BidirectionalBFS {
     public static void setPlate(ArrayList<String> butters,int butterIndex,ArrayList<String> plates,int plateIndex,boolean[] buttersIndexes,boolean[] plateIndexes,String[][] matrix){
         buttersIndexes[butterIndex] = true;
         String butter = butters.get(butterIndex);
-        int butterRow = Integer.parseInt(butter.split(",")[0]);
-        int butterCol = Integer.parseInt(butter.split(",")[1]);
-        matrix[butterRow][butterCol] = matrix[butterRow][butterCol].replace("b","");
+        replaceButter(butter,matrix);
 
         plateIndexes[plateIndex] = true;
         String plate = plates.get(plateIndex);
-        int plateRow = Integer.parseInt(plate.split(",")[0]);
-        int plateCol = Integer.parseInt(plate.split(",")[1]);
-        matrix[plateRow][plateCol] = matrix[plateRow][plateCol] + "b";
+        placeButter(plate,matrix);
     }
     public static void removeButter(String first,String[][] matrix) {
         int firstRow = Integer.parseInt(first.split(",")[0]);
@@ -466,5 +461,78 @@ public class BidirectionalBFS {
         int firstCol = Integer.parseInt(first.split(",")[1]);
 
         matrix[firstRow][firstCol] = matrix[firstRow][firstCol].replace("b","B");
+    }
+    public static ArrayList<ArrayList<String>> FindRobotToButter(String Robot,ArrayList<ArrayList<String>> butterToPlates, String[][] matrix, int row, int col){
+        ArrayList<ArrayList<String>> path = new ArrayList<>();
+        boolean[] butterIndexes = new boolean[butterToPlates.size()];
+        for(int i = 0 ; i < butterToPlates.size(); i++) {
+            path.add(new ArrayList<>());
+            butterIndexes[i] = false;
+        }
+        int min;
+        int minIndex ;
+        for(int i = 0 ; i < butterToPlates.size() ; i++){
+            min = row * col + 1;
+            minIndex = -1;
+            for(int j = 0 ; j < butterToPlates.size(); j++)
+                if(calculateManhatan(Robot,butterToPlates.get(j).get(0)) < min && !butterIndexes[j] && BIBFS(Robot,butterToPlates.get(j).get(0),matrix,row,col,false) != null){
+                    min = calculateManhatan(Robot,butterToPlates.get(j).get(0));
+                    minIndex = j;
+                }
+            if(minIndex == -1)
+                break;
+            butterIndexes[minIndex] = true;
+            ArrayList<String> temp = BIBFS(Robot,butterToPlates.get(minIndex).get(0),matrix,row,col,false);
+            for(String step : temp)
+                path.get(i).add(step);
+            for(String step : butterToPlates.get(minIndex))
+                path.get(i).add(step);
+            Robot = updateLocation(butterToPlates.get(minIndex).get(butterToPlates.get(minIndex).size() - 1));
+        }
+        return path;
+    }
+    public static String updateLocation(String newLocation){
+        int goalRow = Integer.parseInt(newLocation.split(",")[0]);
+        int goalCol = Integer.parseInt(newLocation.split(",")[1]);
+        return goalRow + "," + goalCol;
+    }
+    public static ArrayList<String> makeWay(ArrayList<String> path,String[][] matrix,int row,int col){
+        ArrayList<String> temp = new ArrayList<>();
+        for(int i = 0; i < path.size() - 1 ; i++){
+            if(!path.contains(FindThirdLocation(path.get(i),path.get(i + 1))))
+                temp.add(FindThirdLocation(path.get(i),path.get(i + 1)));
+            temp.add(path.get(i));
+        }
+        ArrayList<String> finalPath = new ArrayList<>();
+        finalPath.add(temp.get(0));
+        for(int i = 0; i < temp.size() - 1 ; i ++){
+            if(sameRow(temp.get(i),temp.get(i + 1)))
+                placeButter(temp.get(i + 2),matrix);
+            ArrayList<String> bbfs = BIBFS(temp.get(i),temp.get(i + 1),matrix,row,col,false);
+            if(sameRow(temp.get(i),temp.get(i + 1)))
+                replaceButter(temp.get(i + 2),matrix);
+            for(int j = 1; j < bbfs.size() ; j++)
+                finalPath.add(bbfs.get(j));
+        }
+        return finalPath;
+    }
+    public static boolean sameRow(String first,String second){
+        int goalRow = Integer.parseInt(first.split(",")[0]);
+        int goalCol = Integer.parseInt(first.split(",")[1]);
+        int srcRow = Integer.parseInt(second.split(",")[0]);
+        int srcCol = Integer.parseInt(second.split(",")[1]);
+        if(goalRow == srcRow || goalCol == srcCol)
+            return false;
+        return true;
+    }
+    public static void placeButter(String location,String[][] matrix){
+        int goalRow = Integer.parseInt(location.split(",")[0]);
+        int goalCol = Integer.parseInt(location.split(",")[1]);
+        matrix[goalRow][goalCol] = matrix[goalRow][goalCol] + "b";
+    }
+    public static void replaceButter(String location,String[][] matrix){
+        int goalRow = Integer.parseInt(location.split(",")[0]);
+        int goalCol = Integer.parseInt(location.split(",")[1]);
+        matrix[goalRow][goalCol] = matrix[goalRow][goalCol].replace("b","");
     }
 }
