@@ -44,6 +44,7 @@ public class BidirectionalBFS {
         for(int i = 0 ; i < finalPath.size(); i++) {
             System.out.println("\n\ngoing for the butter : " + (i + 1) + "\n\n");
             terminalShow(finalPath.get(i), matrix, Row, Col);
+            System.out.println("\nmax depth from robot to plate" + (i + 1) + " : " + finalPath.get(i).size());
             System.out.println();
             printDirection(finalPath.get(i));
         }
